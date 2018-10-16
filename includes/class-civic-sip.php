@@ -270,5 +270,4 @@ class Civic_Sip {
 	public function get_version() {
 		return $this->version;
 	}
-
 }

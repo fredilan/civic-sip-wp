@@ -69,7 +69,7 @@ class Civic_Sip_Admin {
 			'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIj8+Cjxzdmcgd2lkdGg9IjY0MCIgaGVpZ2h0PSI0ODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPgogPCEtLSBDcmVhdGVkIHdpdGggU1ZHLWVkaXQgLSBodHRwOi8vc3ZnLWVkaXQuZ29vZ2xlY29kZS5jb20vIC0tPgogPGRlZnM+CiAgPHN5bWJvbCBpZD0ic3ZnXzEiIHZpZXdCb3g9IjAgMCAxNjAgMTYwIiBoZWlnaHQ9IjE2MCIgd2lkdGg9IjE2MCIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgIDxwYXRoIGQ9Im04OC4yMjkzNzgsODYuMjI3NDMyYzYuMjMwMTk0LC0zLjA0NzkzNSAxMC41MjA2MjIsLTkuNDQ4OTQ0IDEwLjUyMDYyMiwtMTYuODUyMzcxYzAsLTEwLjM1NTYyMSAtOC4zOTQzNzksLTE4Ljc1IC0xOC43NSwtMTguNzVjLTEwLjM1NTYyMSwwIC0xOC43NSw4LjM5NDM3OSAtMTguNzUsMTguNzVjMCw3LjQwMzY3MSA0LjI5MDcxOCwxMy44MDQ4NTUgMTAuNTIxMjQ4LDE2Ljg1MjY3NmwwLDIzLjE0NzI2M2wxNi40NTgxMywwbDAsLTIzLjE0NzU2OHptLTguMjI5Mzc4LDUzLjc3MjU2OGMtMzMuMDg0MzcsMCAtNjAsLTI2LjkxNTYyNyAtNjAsLTYwYzAsLTMzLjA4NDM3IDI2LjkxNTYzLC02MCA2MCwtNjBjMjYuOTk4NzQ5LDAgNDkuODg2MjQ2LDE3LjkyNjI1IDU3LjM5NDM3OSw0Mi41bDIwLjY4MDYxOCwwYy03Ljk4MTg3MywtMzUuNzY0OTk5IC0zOS45MDQzNzMsLTYyLjUgLTc4LjA3NDk5NywtNjIuNWMtNDQuMTgzMTIxLDAgLTgwLDM1LjgxNzUwMSAtODAsODBjMCw0NC4xODI1MDMgMzUuODE2ODc5LDgwIDgwLDgwYzM4LjE3MDYyNCwwIDcwLjA5MzEyNCwtMjYuNzM1MDAxIDc4LjA3NDk5NywtNjIuNWwtMjAuNjgwNjE4LDBjLTcuNTA4MTMzLDI0LjU3Mzc1MyAtMzAuMzk1NjMsNDIuNSAtNTcuMzk0Mzc5LDQyLjV6Ii8+CiAgPC9zeW1ib2w+CiA8L2RlZnM+CiA8Zz4KICA8dGl0bGU+TGF5ZXIgMTwvdGl0bGU+CiAgPHVzZSBmaWxsPSIjZmZmZmZmIiB4PSIwIiB5PSIwIiB4bGluazpocmVmPSIjc3ZnXzEiIGlkPSJzdmdfMiIvPgogIDxnIGlkPSJzdmdfMyIvPgogPC9nPgo8L3N2Zz4=',
 			90
 		);
-
+		add_submenu_page( 'civic-qr-auth', 'Civic Verified Users', 'Civic Verified Users List', 'manage_options', 'civic-qr-verified-list', [$this, 'display_civic_verified_users_page'] );
 	}
 
 	/**
@@ -77,11 +77,22 @@ class Civic_Sip_Admin {
 	 *
 	 * @since 1.0.0
 	 */
-	public function display_settings_page() {
+        public function display_settings_page() {
 
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/civic-sip-admin-display.php';
 
 	}
+
+        /**
+         * Renders Civic Verified Users page.
+         *
+         * @since 1.0.0
+         */
+	public function display_civic_verified_users_page() {
+
+                require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/partials/civic-sip-userlist-display.php';
+
+        }
 
 	/**
 	 * Registers settings page sections and fields.
@@ -167,7 +178,7 @@ class Civic_Sip_Admin {
 
 		add_settings_field(
 			'show_civic_button',
-			__( 'Show Civic Sign In Button', 'civic-sip' ),
+			__( 'Show Connect with Civic Button', 'civic-sip' ),
 			[ $this, 'add_settings_field_single_checkbox' ],
 			$this->plugin_name . '-settings',
 			$this->plugin_name . '-settings-auth-section',

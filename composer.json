@@ -4,6 +4,12 @@
     "type": "library",
     "license": "GPLv2",
     "minimum-stability": "dev",
+    "repositories": [  
+        {  
+            "type": "vcs",  
+            "url": "https://github.com/fredilan/civic-sip-php"  
+        }  
+    ], 
     "authors": [
         {
             "name": "Blockvis",
