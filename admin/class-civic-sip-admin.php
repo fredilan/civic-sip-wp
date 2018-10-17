@@ -325,7 +325,7 @@ class Civic_Sip_Admin {
 		?>
 		<p>
 			<?php printf( esc_html__(
-				'Use the shortcode %s in your WP content or templates to display the “Sign In With Civic” button.',
+				'Use the shortcode %s in your WP content or templates to display the “Connect with Civic” button.',
 				'civic-sip' ), '<strong>[civic-auth]</strong>' ); ?>
 			<br>
 			<?php printf(esc_html__(

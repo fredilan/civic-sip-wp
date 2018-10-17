@@ -13,6 +13,7 @@
 
 	// Listen for data
 	civicSip.on( 'auth-code-received', function ( event ) {
+	console.log(event);
 		$( 'body' ).addClass( 'civic-hit-the-lights civic-no-scroll' );
 		var modal = $( 'div.civic-modal.civic-qrcode' );
 		var loader = $( '#civic-loader' );
