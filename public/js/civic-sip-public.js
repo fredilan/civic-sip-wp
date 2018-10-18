@@ -66,7 +66,9 @@
 					modal.find( '.civic-window' ).show();
 					modal.find( '.civic-content' ).append( response.data.modal )
 						.attr( 'style', '' ); // Removes style height.
-
+			/*
+			* Disabling registration feature using Civic
+			*
 					$( '#civic-register' ).on( 'click', function () {
 						$.ajax( {
 							type: 'POST',
@@ -82,7 +84,7 @@
 							}
 						} );
 					} );
-
+			*/
 					$( '#civic-cancel' ).on( 'click', function () {
 						modal.removeClass( 'civic-show' );
 						$( 'body' ).removeClass( 'civic-hit-the-lights civic-no-scroll' );
