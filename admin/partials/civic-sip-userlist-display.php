@@ -1,309 +1,226 @@
 <?php
 
-/*
-Plugin Name: Civic Verified Users List
-Plugin URI: 
-Description: Civic Verified Users data list table
-Version: 1.0
-Author: Lhan Samson
-Author URI:  https://www.vivaceis.com
-*/
-
-if ( ! class_exists( 'WP_List_Table' ) ) {
-	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+if( ! class_exists( 'WP_List_Table' ) ) {
+    require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
-class Civic_Users_List extends WP_List_Table {
+class My_List_Table extends WP_List_Table {
 
-	/** Class constructor */
-	public function __construct() {
-
-		parent::__construct( [
-			'singular' => __( 'Verified User', 'sp' ), //singular name of the listed records
-			'plural'   => __( 'Verified Users', 'sp' ), //plural name of the listed records
-			'ajax'     => false //does this table support ajax?
-		] );
-
-	}
-
-
-	/**
-	 * Retrieve civic user data from the database
-	 *
-	 * @param int $per_page
-	 * @param int $page_number
-	 *
-	 * @return mixed
-	 */
-	public static function get_civic_users( $per_page = 5, $page_number = 1 ) {
-
-		global $wpdb;
-
-		$sql = "SELECT * FROM {$wpdb->prefix}civic_userdata";
-
-		if ( ! empty( $_REQUEST['orderby'] ) ) {
-			$sql .= ' ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
-			$sql .= ! empty( $_REQUEST['order'] ) ? ' ' . esc_sql( $_REQUEST['order'] ) : ' ASC';
-		}
-
-		$sql .= " LIMIT $per_page";
-		$sql .= ' OFFSET ' . ( $page_number - 1 ) * $per_page;
-
-
-		$result = $wpdb->get_results( $sql, 'ARRAY_A' );
-
-		return $result;
-	}
-
-
-	/**
-	 * Delete a civic user record.
-	 *
-	 * @param int $id civic user ID
-	 */
-	public static function delete_userdata( $id ) {
-		global $wpdb;
-
-		$wpdb->delete(
-			"{$wpdb->prefix}civic_userdata",
-			[ 'ID' => $id ],
-			[ '%d' ]
-		);
-	}
-
-
-	/**
-	 * Returns the count of records in the database.
-	 *
-	 * @return null|string
-	 */
-	public static function record_count() {
-		global $wpdb;
-
-		$sql = "SELECT COUNT(*) FROM {$wpdb->prefix}civic_userdata";
-
-		return $wpdb->get_var( $sql );
-	}
-
-
-	/** Text displayed when no civic user data is available */
-	public function no_items() {
-		_e( 'No Verified User Data available.', 'sp' );
-	}
-
-
-	/**
-	 * Render a column when no column specific method exist.
-	 *
-	 * @param array $item
-	 * @param string $column_name
-	 *
-	 * @return mixed
-	 */
-	public function column_default( $item, $column_name ) {
-		switch ( $column_name ) {
-			case 'personal_name':
-			case 'personal_number':
-				return $item[ $column_name ];
-			default:
-				return print_r( $item, true ); //Show the whole array for troubleshooting purposes
-		}
+	function _construct() {
+  		add_action( 'admin_head', array( &$this, 'admin_header' ) );
 	}
 
 	/**
-	 * Render the bulk edit checkbox
-	 *
-	 * @param array $item
-	 *
-	 * @return string
-	 */
-	function column_cb( $item ) {
-		return sprintf(
-			'<input type="checkbox" name="bulk-delete[]" value="%s" />', $item['ID']
-		);
-	}
-
-
-	/**
-	 * Method for name column
-	 *
-	 * @param array $item an array of DB data
-	 *
-	 * @return string
-	 */
-	function column_name( $item ) {
-
-		$delete_nonce = wp_create_nonce( 'sp_delete_civic_user' );
-
-		$title = '<strong>' . $item['name'] . '</strong>';
-
-		$actions = [
-			'delete' => sprintf( '<a href="?page=%s&action=%s&civic_user=%s&_wpnonce=%s">Delete</a>', esc_attr( $_REQUEST['page'] ), 'delete', absint( $item['ID'] ), $delete_nonce )
-		];
-
-		return $title . $this->row_actions( $actions );
-	}
-
-
-	/**
-	 *  Associative array of columns
-	 *
-	 * @return array
-	 */
-	function get_columns() {
-		$columns = [
-			'cb'      => '<input type="checkbox" />',
-			'id'    => __( 'ID', 'sp' ),
-			'name'    => __( 'Name', 'sp' ),
-			'personal_email' => __( 'Email Address', 'sp' ),
-			'personal_phonenumber'    => __( 'Phone Number', 'sp' )
-		];
-
-		return $columns;
-	}
-
-
-	/**
-	 * Columns to make sortable.
-	 *
-	 * @return array
-	 */
-	public function get_sortable_columns() {
-		$sortable_columns = array(
-			'name' => array( 'name', true ),
-			'city' => array( 'city', false )
-		);
-
-		return $sortable_columns;
-	}
-
-	/**
-	 * Returns an associative array containing the bulk action
-	 *
-	 * @return array
-	 */
-	public function get_bulk_actions() {
-		$actions = [
-			'bulk-delete' => 'Delete'
-		];
-
-		return $actions;
-	}
-
-
-	/**
-	 * Handles data query and filter, sorting, and pagination.
-	 */
-	public function prepare_items() {
-
-		$this->_column_headers = $this->get_column_info();
-
-		/** Process bulk action */
-		$this->process_bulk_action();
-
-		$per_page     = $this->get_items_per_page( 'civic_users_per_page', 5 );
-		$current_page = $this->get_pagenum();
-		$total_items  = self::record_count();
-
-		$this->set_pagination_args( [
-			'total_items' => $total_items, //WE have to calculate the total number of items
-			'per_page'    => $per_page //WE have to determine how many items to show on a page
-		] );
-
-		$this->items = self::get_civic_users( $per_page, $current_page );
-	}
-
-	/**
- 	* Display the rows of records in the table
- 	* @return string, echo the markup of the rows
+ 	* Retrieve civic user’s data from the database
+ 	*
+ 	* @param int $per_page
+ 	* @param int $page_number
+ 	*
+ 	* @return mixed
  	*/
-	function display_rows() {
+	function get_civic_users( $per_page = 5, $page_number = 1 ) {
 
-   	//Get the records registered in the prepare_items method
-   	$records = $this->items;
+  		global $wpdb;
+  		$sql = "SELECT * FROM {$wpdb->prefix}civic_userdata";
+ 	 	if ( ! empty( $_REQUEST['orderby'] ) ) {
+    			$sql .= ' ORDER BY ' . esc_sql( $_REQUEST['orderby'] );
+    			$sql .= ! empty( $_REQUEST['order'] ) ? ' ' . esc_sql( $_REQUEST['order'] ) : ' ASC';
+ 	 	}
 
-   	//Get the columns registered in the get_columns and get_sortable_columns methods
-   	list( $columns, $hidden ) = $this->get_column_info();
+  		$sql .= " LIMIT $per_page";
+ 	 	$sql .= ' OFFSET ' . ( $page_number - 1 ) * $per_page;
 
-   	//Loop for each record
-   	if(!empty($records)){
-		foreach($records as $rec){
-
-      		//Open the line
-        	echo '< tr id="record_'.$rec->id.'">';
-      		foreach ( $columns as $column_name => $column_display_name ) {
-
-         		//Style attributes for each col
-         		$class = "class='$column_name column-$column_name'";
-         		$style = "";
-         		if ( in_array( $column_name, $hidden ) ) $style = ' style="display:none;"';
-         		$attributes = $class . $style;
-
-         		//edit link
-         		$editlink  = '/wp-admin/link.php?action=edit&link_id='.(int)$rec->id;
-
-         		//Display the cell
-         		switch ( $column_name ) {
-            			case "id":  echo '< td '.$attributes.'>'.stripslashes($rec->id).'< /td>';   break;
-            			case "name": echo '< td '.$attributes.'>'.stripslashes($rec->link_name).'< /td>'; break;
-            			case "col_link_url": echo '< td '.$attributes.'>'.stripslashes($rec->link_url).'< /td>'; break;
-            			case "col_link_description": echo '< td '.$attributes.'>'.$rec->link_description.'< /td>'; break;
-            			case "col_link_visible": echo '< td '.$attributes.'>'.$rec->link_visible.'< /td>'; break;
-         		}
-      		}
-
-      		//Close the line
-      		echo'< /tr>';
-   		}
+  		$result = $wpdb->get_results( $sql, 'ARRAY_A' );
+ 	 	return $result;
 	}
-}
+
+	/**
+ 	* Delete a civic user record.
+ 	*
+ 	* @param int $id civic userdata ID
+ 	*/
+	function delete_civic_user( $id ) {
+  		global $wpdb;
+
+  		$wpdb->delete(
+    			"{$wpdb->prefix}civic_userdata",
+    			[ 'id' => $id ],
+    			[ '%d' ]
+  		);
+	}
+
+	/**
+ 	* Returns the count of records in the database.
+ 	*
+ 	* @return null|string
+ 	*/
+	function record_count() {
+ 		global $wpdb;
+  		$sql = "SELECT COUNT(*) FROM {$wpdb->prefix}civic_userdata";
+ 		return $wpdb->get_var( $sql );
+	}
+
+	function get_bulk_actions() {
+  		$actions = array(
+    			'delete'    => 'Delete'
+  		);
+  		return $actions;
+	}
 
 	public function process_bulk_action() {
 
-		//Detect when a bulk action is being triggered...
-		if ( 'delete' === $this->current_action() ) {
+  		// Detect when a bulk action is being triggered...
+  		if ( 'delete' === $this->current_action() ) {
 
-			// In our file that handles the request, verify the nonce.
-			$nonce = esc_attr( $_REQUEST['_wpnonce'] );
+    			// In our file that handles the request, verify the nonce.
+    			$nonce = esc_attr( $_REQUEST['_wpnonce'] );
 
-			if ( ! wp_verify_nonce( $nonce, 'sp_delete_civic_user' ) ) {
-				die( 'Go get a life script kiddies' );
-			}
-			else {
-				self::delete_civic_user( absint( $_GET['civic_user'] ) );
-
-		                // esc_url_raw() is used to prevent converting ampersand in url to "#038;"
-		                // add_query_arg() return the current url
-		                wp_redirect( esc_url_raw(add_query_arg()) );
-				exit;
-			}
-
+    			if ( ! wp_verify_nonce( $nonce, 'sp_delete_civic_user' ) ) {
+      				die( 'Go get a life script kiddies' );
+ 	   		} else {
+      				$this->delete_civic_user( absint( $_GET['civic_user'] ) );
+      				wp_redirect( esc_url( add_query_arg() ) );
+      				exit;
+    			}
 		}
 
-		// If the delete bulk action is triggered
-		if ( ( isset( $_POST['action'] ) && $_POST['action'] == 'bulk-delete' )
-		     || ( isset( $_POST['action2'] ) && $_POST['action2'] == 'bulk-delete' )
-		) {
+  		// If the delete bulk action is triggered
+  		if ( ( isset( $_POST['action'] ) && $_POST['action'] == 'bulk-delete' )
+       		|| ( isset( $_POST['action2'] ) && $_POST['action2'] == 'bulk-delete' ) ) {
 
-			$delete_ids = esc_sql( $_POST['bulk-delete'] );
+ 			$delete_ids = esc_sql( $_POST['bulk-delete'] );
 
-			// loop over the array of record IDs and delete them
-			foreach ( $delete_ids as $id ) {
-				self::delete_civic_user( $id );
+    			// loop over the array of record IDs and delete them
+    			foreach ( $delete_ids as $id ) {
+      				$this->delete_civic_user( $id );
+    			}
 
-			}
-
-			// esc_url_raw() is used to prevent converting ampersand in url to "#038;"
-		        // add_query_arg() return the current url
-		        wp_redirect( esc_url_raw(add_query_arg()) );
-			exit;
-		}
+    			wp_redirect( esc_url( add_query_arg() ) );
+    			exit;
+  		}
 	}
 
+	function get_columns(){
+  		$columns = array(
+    			'cb' => '<input type="checkbox" />',
+    			'personal_email'      => 'Email Address',
+    			'personal_phonenumber'      => 'Phone Number',
+    			'genericid_type' => 'Type',
+    			'genericid_name' => 'Name',
+    			'genericid_number' => 'Number',
+    			'genericid_dob' => 'Birth Date',
+    			'genericid_issuance_date'    => 'Issuance Date',
+    			'genericid_expiry_date'      => 'Expiry Date',
+    			'genericid_country'      => 'Country',
+  		);
+  		return $columns;
+	}
+
+	function column_cb($item) {
+        	return sprintf(
+            		'<input type="checkbox" name="book[]" value="%s" />', $item['id']
+        	);    
+	}
+
+	function get_sortable_columns() {
+  		$sortable_columns = array(
+    			'personal_email'  => array('personal_email',false),
+    			'personal_phonenumber'  => array('personal_phonenumber',false),
+    			'genericid_type'  => array('genericid_type',false),
+    			'genericid_name'  => array('genericid_name',false),
+    			'genericid_number'  => array('genericid_number',false),
+    			'genericid_dob'  => array('genericid_dob',false),
+    			'genericid_issuance_date' => array('genericid_issuance_date',false),
+    			'genericid_expiry_date'   => array('genericid_expiry_date',false),
+    			'genericid_country'   => array('genericid_country',false)
+  		);
+  		return $sortable_columns;
+	}
+
+	function usort_reorder( $a, $b ) {
+  		// If no sort, default to ID
+  		$orderby = ( ! empty( $_GET['orderby'] ) ) ? $_GET['orderby'] : 'personal_email';
+
+  		// If no order, default to asc
+  		$order = ( ! empty($_GET['order'] ) ) ? $_GET['order'] : 'asc';
+
+  		// Determine sort order
+  		$result = strcmp( $a[$orderby], $b[$orderby] );
+
+  		// Send final sort direction to usort
+  		return ( $order === 'asc' ) ? $result : -$result;
+	}
+
+	function prepare_items() {
+ 		$columns  = $this->get_columns();
+  		$hidden   = array();
+  		$sortable = $this->get_sortable_columns();
+  		$this->_column_headers = array( $columns, $hidden, $sortable );
+  
+  		$per_page = $this->get_items_per_page( 'civic_users_per_page', 20 );
+  		$current_page = $this->get_pagenum();
+  		$total_items = $this->record_count();
+  		$this->set_pagination_args( 
+			array(
+    				'total_items' => $total_items, // WE have to calculate the total number of items
+    				'per_page'    => $per_page // WE have to determine how many items to show on a page
+  			)
+		);
+
+  		$this->items = $this->get_civic_users( $per_page, $current_page );
+  		usort( $this->items, array( &$this, 'usort_reorder' ) );
+	}
+
+	function column_personal_email($item) {
+  		// create a nonce
+  		$delete_nonce = wp_create_nonce( 'sp_delete_civic_user' );
+
+  		$actions = array(
+            		'edit'      => sprintf('<a href="?page=%s&action=%s&civic_user=%s">Edit</a>',$_REQUEST['page'],'edit',$item['id']),
+            		'delete'    => sprintf('<a href="?page=%s&action=%s&civic_user=%s&_wpnonce=%s">Delete</a>',$_REQUEST['page'],'delete',$item['id'], $delete_nonce),
+        	);
+
+  		return sprintf('%1$s %2$s', $item['personal_email'], $this->row_actions($actions) );
+	}
+
+	function column_default( $item, $column_name ) {
+  		switch( $column_name ) { 
+    			case 'id':
+    			case 'genericid_type':
+    			case 'genericid_name':
+    			case 'genericid_number':
+    			case 'genericid_dob':
+    			case 'genericid_issuance_date':
+    			case 'genericid_expiry_date':
+    			case 'genericid_country':
+    			case 'personal_email':
+    			case 'personal_phonenumber':
+      				return $item[ $column_name ];
+    			default:
+      				return print_r( $item, true ) ; //Show the whole array for troubleshooting purposes
+  		}
+	}
+
+	function no_items() {
+  		_e( 'No Civic User Data found.' );
+	}
 }
 
-		?>
-		<div class="wrap">
+$option = 'per_page';
+
+$args   = [
+	'label'   => 'Civic_Users_List',
+        	'default' => 5,
+                'option'  => 'civic_users_per_page'
+     	];
+
+add_screen_option( $option, $args );
+
+
+$myListTable = new My_List_Table();
+$myListTable->prepare_items(); 
+?>
+<div class="wrap">
         <div style="margin:10px auto; text-align: center;">
                 <svg width="446px" height="35px" viewBox="0 0 446 160" version="1.1" xmlns="http://www.w3.org/2000/svg"
                      xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
@@ -320,33 +237,12 @@ class Civic_Users_List extends WP_List_Table {
                         </g>
                 </svg>
         </div>
-			<h1><?= esc_html( get_admin_page_title() ); ?></h1>
 
-			<div id="poststuff">
-				<div id="post-body" class="metabox-holder columns-2">
-					<div id="post-body-content">
-						<div class="meta-box-sortables ui-sortable">
-							<form method="post">
-								<?php
-								
-		$option = 'per_page';
-		$args   = [
-			'label'   => 'Civic_Users_List',
-			'default' => 5,
-			'option'  => 'civic_users_per_page'
-		];
+        <h1><?= esc_html( get_admin_page_title() ); ?></h1>
 
-		add_screen_option( $option, $args );
-
-		$cuser_obj = new Civic_Users_List();								
-								
-								$cuser_obj->prepare_items();
-								$cuser_obj->display(); ?>
-							</form>
-						</div>
-					</div>
-				</div>
-				<br class="clear">
-			</div>
-		</div>
-
+	<form method="post">
+  		<input type="hidden" name="page" value="my_list_test" />
+  		<?php $myListTable->search_box('search', 'search_id'); ?>
+  		<?php $myListTable->display(); ?>
+	</form>
+</div>
