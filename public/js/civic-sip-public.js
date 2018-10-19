@@ -33,6 +33,86 @@
 
 	civicSip.on( 'user-cancelled', function ( event ) {
 		// Handle request cancellation if necessary.
+
+		var userData = {
+    			"data": [
+      				{
+        				"label": "verifications.levels.CIVIC:IAL1", 
+        				"value": "CIVIC:IAL1", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.type", 
+        				"value": "Driving License", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.number", 
+        				"value": "A0000000", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.name", 
+        				"value": "Jane Doe", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.dateOfBirth", 
+        				"value": "YYYY-m-d", 
+ 				        "isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.dateOfIssue", 
+        				"value": "YYYY-m-d", 
+        				"isValid": true, 
+        				"isOwner": true
+      				},
+      				{
+        				"label": "documents.genericId.dateOfExpiry",
+        				"value": "2021-1-01",
+        				"isValid": true,
+        				"isOwner": true
+      				},
+      				{
+        				"label": "documents.genericId.image", 
+        				"value": "/9j/4AA...", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.image_md5", 
+        				"value": "d0a...", 
+        				"isValid": true, 
+        				"isOwner": true
+      				}, 
+      				{
+        				"label": "documents.genericId.country", 
+        				"value": "USA", 
+        				"isValid": true, 
+        				"isOwner": true
+      				},
+      				{
+        				"label": "contact.personal.email",
+        				"value": "jonsmith@example.com",
+        				"isValid": true,
+        				"isOwner": true
+     				},
+     				{
+        				"label": "contact.personal.phoneNumber",
+        				"value": "+1 5551234567",
+        				"isValid": true,
+        				"isOwner": true
+    				}
+    			], 
+    			"userId": "c6d5795f8a059ez5ad29a33a60f8b402a172c3e0bbe50fd230ae8e0303609b42"
+  		};
+
+		console.log(userData.userId);
 	} );
 
 	// Error events.

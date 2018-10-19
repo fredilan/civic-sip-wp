@@ -61,4 +61,20 @@ class Civic_Sip_Activator {
                 require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
                 dbDelta( $sql );
         }
+
+        private function plugin_create_db_new() {
+
+                global $wpdb;
+                $charset_collate = $wpdb->get_charset_collate();
+                $table_name = $wpdb->prefix . 'civic_userdata';
+
+                $sql = "CREATE TABLE $table_name (
+                        id bigint(9) NOT NULL AUTO_INCREMENT,
+                        civic_userid varchar(100) NOT NULL,
+                        civic_data TEXT NOT NULL,
+                        UNIQUE KEY id (id)
+                ) $charset_collate;";
+                require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+                dbDelta( $sql );
+        }
 }
