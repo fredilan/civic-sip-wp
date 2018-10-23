@@ -213,6 +213,7 @@ class Civic_Sip {
 			if ( $plugin_public->settings()['wp_user_auth_enabled'] ) {
 				$this->loader->add_action( 'civic_sip_auth', Civic_Sip_Public::class, 'sip_auth_handle', 100 );
 			}
+			$this->loader->add_action( 'civic_sip_save', Civic_Sip_Public::class, 'save_civic_data', 100 );
 		}
 
 		// Register plugin styles and scripts.

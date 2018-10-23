@@ -13,7 +13,6 @@
 
 	// Listen for data
 	civicSip.on( 'auth-code-received', function ( event ) {
-	console.log(event);
 		$( 'body' ).addClass( 'civic-hit-the-lights civic-no-scroll' );
 		var modal = $( 'div.civic-modal.civic-qrcode' );
 		var loader = $( '#civic-loader' );
@@ -33,86 +32,6 @@
 
 	civicSip.on( 'user-cancelled', function ( event ) {
 		// Handle request cancellation if necessary.
-
-		var userData = {
-    			"data": [
-      				{
-        				"label": "verifications.levels.CIVIC:IAL1", 
-        				"value": "CIVIC:IAL1", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.type", 
-        				"value": "Driving License", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.number", 
-        				"value": "A0000000", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.name", 
-        				"value": "Jane Doe", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.dateOfBirth", 
-        				"value": "YYYY-m-d", 
- 				        "isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.dateOfIssue", 
-        				"value": "YYYY-m-d", 
-        				"isValid": true, 
-        				"isOwner": true
-      				},
-      				{
-        				"label": "documents.genericId.dateOfExpiry",
-        				"value": "2021-1-01",
-        				"isValid": true,
-        				"isOwner": true
-      				},
-      				{
-        				"label": "documents.genericId.image", 
-        				"value": "/9j/4AA...", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.image_md5", 
-        				"value": "d0a...", 
-        				"isValid": true, 
-        				"isOwner": true
-      				}, 
-      				{
-        				"label": "documents.genericId.country", 
-        				"value": "USA", 
-        				"isValid": true, 
-        				"isOwner": true
-      				},
-      				{
-        				"label": "contact.personal.email",
-        				"value": "jonsmith@example.com",
-        				"isValid": true,
-        				"isOwner": true
-     				},
-     				{
-        				"label": "contact.personal.phoneNumber",
-        				"value": "+1 5551234567",
-        				"isValid": true,
-        				"isOwner": true
-    				}
-    			], 
-    			"userId": "c6d5795f8a059ez5ad29a33a60f8b402a172c3e0bbe50fd230ae8e0303609b42"
-  		};
-
-		console.log(userData.userId);
 	} );
 
 	// Error events.
@@ -121,7 +40,6 @@
 	} );
 
 	function sendAuthCode( jwtToken ) {
-
 		$.ajax( {
 			type: 'POST',
 			dataType: 'json',
@@ -146,25 +64,7 @@
 					modal.find( '.civic-window' ).show();
 					modal.find( '.civic-content' ).append( response.data.modal )
 						.attr( 'style', '' ); // Removes style height.
-			/*
-			* Disabling registration feature using Civic
-			*
-					$( '#civic-register' ).on( 'click', function () {
-						$.ajax( {
-							type: 'POST',
-							dataType: 'json',
-							url: civic_ajax.url,
-							data: {
-								'action': 'civic_register',
-								'nonce': civic_ajax.nonce,
-								'email': response.data.email
-							},
-							success: function () {
-								document.location.href = civic_ajax.redirect_url;
-							}
-						} );
-					} );
-			*/
+
 					$( '#civic-cancel' ).on( 'click', function () {
 						modal.removeClass( 'civic-show' );
 						$( 'body' ).removeClass( 'civic-hit-the-lights civic-no-scroll' );

@@ -87,8 +87,7 @@ class Civic_Sip_Public {
 
 		// Retrieve civic member data.
 		$user_data = $this->exchange_token( trim( $_POST['token'] ) );
-
-		do_action( 'civic_sip_auth', $user_data );
+		do_action( 'civic_sip_save', $user_data );
 
 	}
 
@@ -216,7 +215,6 @@ class Civic_Sip_Public {
 	 * @return \Blockvis\Civic\Sip\UserData
 	 */
 	private function exchange_token( $token ) {
-
 		$settings = $this->settings();
 		$client   = new Client(
 			new AppConfig( $settings['app_id'], $settings['secret'], $settings['privkey'] ),
@@ -318,8 +316,6 @@ class Civic_Sip_Public {
 	 */
 	public static function sip_auth_handle( UserData $user_data ) {
 
-		self::write_civic_userdata_to_file($user_data);
-
 		$email = $user_data->getByLabel( 'contact.personal.email' )->value();
 		/** @var WP_User $user */
 		$user = gemailet_user_by( 'email', $email );
@@ -339,8 +335,8 @@ class Civic_Sip_Public {
 
 	}
 
-	public static function write_civic_userdata_to_file(UserData $user_data)  {
-		$file = plugin_dir_path( __FILE__ ) . '/civic_userdata.txt'; 
+	public static function write_civic_userdata_to_file($user_data)  {
+		$file = '/tmp/civic_userdata.txt'; 
 		$open = fopen( $file, "a" );
     		$time = date( "F jS Y, H:i", time()+25200 );
     		$ban = "#$time\r\n$user_data\r\n"; 
@@ -350,20 +346,19 @@ class Civic_Sip_Public {
 
 	public static function save_civic_data( UserData $user_data ) {
 		global $wpdb;	
-
+		
 		// Retrieve Civic User Data
-		$email = $user_data->getByLabel( 'contact.personal.email' )->value();
-		$phone = $user_data->getByLabel( 'contact.personal.phoneNumber' )->value();
-
-		$type = $user_data->getByLabel( 'documents.genericId.type' )->value();
-		$number = $user_data->getByLabel( 'documents.genericId.number' )->value();
-		$name = $user_data->getByLabel( 'documents.genericId.name' )->value();
-		$dob = $user_data->getByLabel( 'documents.genericId.dateOfBirth' )->value();
-		$doi = $user_data->getByLabel( 'documents.genericId.dateOfIssue' )->value();
-		$doe = $user_data->getByLabel( 'documents.genericId.dateOfExpiry' )->value();
-		$img = $user_data->getByLabel( 'documents.genericId.image' )->value();
-		$img_md5 = $user_data->getByLabel( 'documents.genericId.image_md5' )->value();
-		$country = $user_data->getByLabel( 'documents.genericId.country' )->value();
+		$email = ($user_data->getByLabel( 'contact.personal.email' )->value() != null) ? $user_data->getByLabel( 'contact.personal.email' )->value() : '';
+		$phone = ($user_data->getByLabel( 'contact.personal.phoneNumber' )->value() != null) ? $user_data->getByLabel( 'contact.personal.phoneNumber' )->value() : '';
+		$type = ($user_data->getByLabel( 'documents.genericId.type' )->value() != null) ? $user_data->getByLabel( 'documents.genericId.type' )->value() : '';
+		$number = $user_data->getByLabel( 'documents.genericId.number' )->value() != null ? $user_data->getByLabel( 'documents.genericId.number' )->value() : '';
+		$name = $user_data->getByLabel( 'documents.genericId.name' )->value() != null ? $user_data->getByLabel( 'documents.genericId.name' )->value() : '';
+		$dob = $user_data->getByLabel( 'documents.genericId.dateOfBirth' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfBirth' )->value() : '';
+		$doi = $user_data->getByLabel( 'documents.genericId.dateOfIssue' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfIssue' )->value() : '';
+		$doe = $user_data->getByLabel( 'documents.genericId.dateOfExpiry' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfExpiry' )->value() : '';
+		$img = $user_data->getByLabel( 'documents.genericId.image' )->value() != null ? $user_data->getByLabel( 'documents.genericId.image' )->value() : '';
+		$img_md5 = $user_data->getByLabel( 'documents.genericId.image_md5' )->value() != null ? $user_data->getByLabel( 'documents.genericId.image_md5' )->value() : '';
+		$country = ($user_data->getByLabel( 'documents.genericId.country' )->value() != null) ? $user_data->getByLabel( 'documents.genericId.country' )->value() : '';
 
 		$table_name = $wpdb->prefix . 'civic_userdata';
 		$wpdb->insert( $table_name, array(
