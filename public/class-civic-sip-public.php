@@ -222,7 +222,7 @@ class Civic_Sip_Public {
 		);
 
 		try {
-			$user_data = $client->exchangeToken( $token );
+			$user_data = $client->exchangeToken( trim($token) );
 		} catch ( Exception $e ) {
 			wp_send_json_error( new WP_Error( 'civic_sip_request_error', __( 'Civic SIP authorization failed.', 'civic-sip' ) ) );
 		}
@@ -344,35 +344,58 @@ class Civic_Sip_Public {
     		fclose( $open );
 	}
 
-	public static function save_civic_data( UserData $user_data ) {
-		global $wpdb;	
-		
-		// Retrieve Civic User Data
-		$email = ($user_data->getByLabel( 'contact.personal.email' )->value() != null) ? $user_data->getByLabel( 'contact.personal.email' )->value() : '';
-		$phone = ($user_data->getByLabel( 'contact.personal.phoneNumber' )->value() != null) ? $user_data->getByLabel( 'contact.personal.phoneNumber' )->value() : '';
-		$type = ($user_data->getByLabel( 'documents.genericId.type' )->value() != null) ? $user_data->getByLabel( 'documents.genericId.type' )->value() : '';
-		$number = $user_data->getByLabel( 'documents.genericId.number' )->value() != null ? $user_data->getByLabel( 'documents.genericId.number' )->value() : '';
-		$name = $user_data->getByLabel( 'documents.genericId.name' )->value() != null ? $user_data->getByLabel( 'documents.genericId.name' )->value() : '';
-		$dob = $user_data->getByLabel( 'documents.genericId.dateOfBirth' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfBirth' )->value() : '';
-		$doi = $user_data->getByLabel( 'documents.genericId.dateOfIssue' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfIssue' )->value() : '';
-		$doe = $user_data->getByLabel( 'documents.genericId.dateOfExpiry' )->value() != null ? $user_data->getByLabel( 'documents.genericId.dateOfExpiry' )->value() : '';
-		$img = $user_data->getByLabel( 'documents.genericId.image' )->value() != null ? $user_data->getByLabel( 'documents.genericId.image' )->value() : '';
-		$img_md5 = $user_data->getByLabel( 'documents.genericId.image_md5' )->value() != null ? $user_data->getByLabel( 'documents.genericId.image_md5' )->value() : '';
-		$country = ($user_data->getByLabel( 'documents.genericId.country' )->value() != null) ? $user_data->getByLabel( 'documents.genericId.country' )->value() : '';
+    public static function save_civic_data( UserData $user_data ) {
 
-		$table_name = $wpdb->prefix . 'civic_userdata';
-		$wpdb->insert( $table_name, array(
-    			'genericid_type' => $type,
-    			'genericid_number' => $number,
-    			'genericid_name' => $name,
-    			'genericid_dob' => $dob,
-    			'genericid_issuance_date' => $doi,
-    			'genericid_expiry_date' => $doe,
-    			'genericid_image' => $img,
-    			'genericid_image_hash' => $img_md5,
-    			'genericid_country' => $country,
-    			'personal_email' => $email,
-    			'personal_phonenumber' => $phone,
-  		) );
+        $email = $user_data->getByLabel( 'contact.personal.email' )->value();
+		self::write_civic_userdata_to_file(print_r($user_data->items(), true));
+        try {
+            global $wpdb;
+            $table_name = $wpdb->prefix . 'civic_userdata';
+            $wpdb->insert( $table_name, array(
+                'genericid_type' => $user_data->getByLabel( 'documents.genericId.type' )->value(),
+                'genericid_number' => $user_data->getByLabel( 'documents.genericId.number' )->value(),
+                'genericid_name' => $user_data->getByLabel( 'documents.genericId.name' )->value(),
+                'genericid_dob' => '0000-00-00',
+                'genericid_issuance_date' => '0000-00-00',
+                'genericid_expiry_date' => '0000-00-00',
+                'genericid_image' => base64_decode($user_data->getByLabel( 'documents.genericId.image' )->value()),
+                'genericid_image_hash' =>  $user_data->getByLabel( 'documents.genericId.image_md5' )->value(),
+                'genericid_country' => $user_data->getByLabel( 'documents.genericId.country' )->value(),
+                'personal_email' => $user_data->getByLabel( 'contact.personal.email' )->value(),
+                'personal_phonenumber' => $user_data->getByLabel( 'contact.personal.phoneNumber' )->value(),
+            ) );
+        } catch ( Exception $e ) {
+            wp_send_json_error( new WP_Error( 'civic_sip_request_error', __( 'Civic SIP failed saving to database.', 'civic-sip' ) ) );
+        }
+    }
+
+	/**
+ 	* Save the image on the server.
+ 	*/
+	public static function save_image( $base64_img, $title ) {
+
+		// Upload dir.
+		$upload_dir  = wp_upload_dir();
+		$upload_path = str_replace( '/', DIRECTORY_SEPARATOR, $upload_dir['path'] ) . DIRECTORY_SEPARATOR;
+
+		$img             = str_replace( 'data:image/jpeg;base64,', '', $base64_img );
+		$img             = str_replace( ' ', '+', $img );
+		$decoded         = base64_decode( $img );
+		$filename        = $title . '.jpeg';
+		$file_type       = 'image/jpeg';
+		$hashed_filename = md5( $filename . microtime() ) . '_' . $filename;
+
+		// Save the image in the uploads directory.
+		$upload_file = file_put_contents( $upload_path . $hashed_filename, $decoded );
+
+		$attachment = array(
+			'post_mime_type' => $file_type,
+			'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $hashed_filename ) ),
+			'post_content'   => '',
+			'post_status'    => 'inherit',
+			'guid'           => $upload_dir['url'] . '/' . basename( $hashed_filename )
+		);
+
+		$attach_id = wp_insert_attachment( $attachment, $upload_dir['path'] . '/' . $hashed_filename );
 	}
 }
