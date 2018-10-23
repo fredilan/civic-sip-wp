@@ -52,7 +52,7 @@ class Civic_Sip_Activator {
                         genericid_issuance_date date,
                         genericid_expiry_date date,
                         genericid_image_hash varchar(40),
-                        genericid_image text,
+                        genericid_image longblob,
                         genericid_country varchar(30),
                         personal_email varchar(30),
                         personal_phonenumber varchar(30),
