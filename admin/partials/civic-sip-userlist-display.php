@@ -176,7 +176,7 @@ class My_List_Table extends WP_List_Table {
   		$delete_nonce = wp_create_nonce( 'sp_delete_civic_user' );
 
   		$actions = array(
-					'view' => '<a href="#TB_inline?height=800&width=1200&inlineId=civic_document" class="thickbox">View Document</a><div id="civic_document" style="display:none;">' . '<img src="data:image/jpeg;base64,' . base64_encode($item[ 'genericid_image' ]) . '"/>' . '</div>',
+					'view' => '<a href="#TB_inline?height=800&width=1200&inlineId=civic_document_' . $item[ 'id' ] . '" class="thickbox">View Document</a><div id="civic_document_' . $item[ 'id' ] . '" style="display:none;">' . '<img src="data:image/jpeg;base64,' . base64_encode($item[ 'genericid_image' ]) . '"/>' . '</div>',
             		'delete'    => sprintf('<a href="?page=%s&action=%s&civic_user=%s&_wpnonce=%s">Delete</a>',$_REQUEST['page'],'delete',$item['id'], $delete_nonce),
         	);
 

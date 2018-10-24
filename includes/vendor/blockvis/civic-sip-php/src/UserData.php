@@ -36,7 +36,7 @@ class UserData implements JsonSerializable
      */
     public function getByLabel($label)
     {
-        return isset($this->items[$label]) ? $this->items[$label] : null;
+       	return isset($this->items[$label]) ? $this->items[$label] : null;
     }
 
     /**
@@ -84,7 +84,33 @@ class UserData implements JsonSerializable
                 $item['isOwner']
             );
         }
+	
+		if(!isset($items['documents.genericId.dateOfBirth'])) {
+            $items['documents.genericId.dateOfBirth'] = new UserDataItem(
+                'documents.genericId.dateOfBirth',
+                '0000-00-00',
+                false,
+                true
+            );
+		}
 
+		if(!isset($items['documents.genericId.dateOfIssue'])) {
+           	$items['documents.genericId.dateOfIssue'] = new UserDataItem(
+                'documents.genericId.dateOfIssue',
+                '0000-00-00',
+                false,
+                true
+            );
+		}
+
+		if(!isset($items['documents.genericId.dateOfExpiry'])) {
+            $items['documents.genericId.dateOfExpiry'] = new UserDataItem(
+                'documents.genericId.dateOfExpiry',
+                '0000-00-00',
+                false,
+                true
+            );
+		}
         return $items;
     }
 
